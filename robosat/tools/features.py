@@ -9,11 +9,12 @@ from robosat.tiles import tiles_from_slippy_map
 from robosat.config import load_config
 
 from robosat.features.parking import ParkingHandler
+from robosat.features.bridge import BridgeHandler
 
 
 # Register post-processing handlers here; they need to support a `apply(tile, mask)` function
 # for handling one mask and a `save(path)` function for GeoJSON serialization to a file.
-handlers = {"parking": ParkingHandler}
+handlers = {"bridge": BridgeHandler}
 
 
 def add_parser(subparser):
