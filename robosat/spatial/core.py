@@ -39,9 +39,9 @@ def union(shapes):
 
     return functools.reduce(fn, shapes)
 
-ea_transformer = pyproj.Transformer.from_crs("epsg:4326", "esri:54009") 
-wgs_ellipsoid_transformer = pyproj.Transformer.from_crs("epsg:4326", "epsg:3395")
-ellipsoid_wgs_transformer = pyproj.Transformer.from_crs("epsg:3395", "epsg:4326")
+ea_transformer = pyproj.Transformer.from_crs("epsg:4326", "esri:54009", always_xy=True) 
+wgs_ellipsoid_transformer = pyproj.Transformer.from_crs("epsg:4326", "epsg:3395", always_xy=True)
+ellipsoid_wgs_transformer = pyproj.Transformer.from_crs("epsg:3395", "epsg:4326", always_xy=True)
 
 def project_ea(shape):
     return shapely.ops.transform(ea_transformer.transform, shape)
