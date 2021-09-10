@@ -75,7 +75,7 @@ class SlippyMapTilesConcatenation(torch.utils.data.Dataset):
         if self.joint_transform is not None:
             images, mask = self.joint_transform(images, mask)
 
-        return torch.cat(images, dim=0), mask, tiles
+        return torch.cat(images, dim=0), mask
 
 
 # Todo: once we have the SlippyMapDataset this dataset should wrap

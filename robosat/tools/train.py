@@ -168,7 +168,7 @@ def train(loader, num_classes, device, net, optimizer, criterion):
 
     net.train()
 
-    for images, masks, tiles in tqdm(loader, desc="Train", unit="batch", ascii=True):
+    for images, masks in tqdm(loader, desc="Train", unit="batch", ascii=True):
         images = images.to(device)
         masks = masks.to(device)
 
@@ -210,7 +210,7 @@ def validate(loader, num_classes, device, net, criterion):
 
     net.eval()
 
-    for images, masks, tiles in tqdm(loader, desc="Validate", unit="batch", ascii=True):
+    for images, masks in tqdm(loader, desc="Validate", unit="batch", ascii=True):
         images = images.to(device)
         masks = masks.to(device)
 
