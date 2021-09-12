@@ -7,6 +7,7 @@ See: http://pytorch.org/docs/0.3.1/data.html
 
 import torch
 from PIL import Image
+from random import choice
 import torch.utils.data
 
 from robosat.tiles import tiles_from_slippy_map, buffer_tile_image
@@ -62,7 +63,7 @@ class SlippyMapTilesConcatenation(torch.utils.data.Dataset):
 
     def __getitem__(self, i):
         # at this point all transformations are applied and we expect to work with raw tensors
-        inputs = [dataset[i] for dataset in self.inputs]
+        inputs = [choice(self.inputs)[i]]
 
         images = [image for image, _ in inputs]
         tiles = [tile for _, tile in inputs]

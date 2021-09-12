@@ -242,6 +242,7 @@ def get_dataset_loaders(model, dataset, workers):
     target_size = (model["common"]["image_size"],) * 2
     batch_size = model["common"]["batch_size"]
     path = dataset["common"]["dataset"]
+    training_set = [os.path.join(path, "training", "images")]
 
     mean, std = [0.485, 0.456, 0.406], [0.229, 0.224, 0.225]
 
@@ -259,8 +260,11 @@ def get_dataset_loaders(model, dataset, workers):
         ]
     )
 
+    for other_data in dataset["common"]["other_data"]:
+        training_set.append(os.path.join(path, "training", other_data))
+
     train_dataset = SlippyMapTilesConcatenation(
-        [os.path.join(path, "training", "images")], os.path.join(path, "training", "labels"), transform
+        training_set, os.path.join(path, "training", "labels"), transform
     )
 
     val_dataset = SlippyMapTilesConcatenation(
