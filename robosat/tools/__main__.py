@@ -16,6 +16,7 @@ from robosat.tools import (
     subset,
     train,
     weights,
+    metrics,
 )
 
 
@@ -44,6 +45,7 @@ def add_parsers():
 
     compare.add_parser(subparser)
     subset.add_parser(subparser)
+    metrics.add_parser(subparser)
 
     # We return the parsed arguments, but the sub-command parsers
     # are responsible for adding a function hook to their command.
