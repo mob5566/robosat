@@ -150,14 +150,15 @@ def main(args):
         for k, v in val_hist.items():
             history["val " + k].append(v)
 
-        visual = "history-{:05d}-of-{:05d}.png".format(epoch + 1, num_epochs)
-        plot(os.path.join(model["common"]["checkpoint"], visual), history)
+        if (epoch + 1) % 25 == 0:
+            visual = "history-{:05d}-of-{:05d}.png".format(epoch + 1, num_epochs)
+            plot(os.path.join(model["common"]["checkpoint"], visual), history)
 
-        checkpoint = "checkpoint-{:05d}-of-{:05d}.pth".format(epoch + 1, num_epochs)
+            checkpoint = "checkpoint-{:05d}-of-{:05d}.pth".format(epoch + 1, num_epochs)
 
-        states = {"epoch": epoch + 1, "state_dict": net.state_dict(), "optimizer": optimizer.state_dict()}
+            states = {"epoch": epoch + 1, "state_dict": net.state_dict(), "optimizer": optimizer.state_dict()}
 
-        torch.save(states, os.path.join(model["common"]["checkpoint"], checkpoint))
+            torch.save(states, os.path.join(model["common"]["checkpoint"], checkpoint))
 
 
 def train(loader, num_classes, device, net, optimizer, criterion):
