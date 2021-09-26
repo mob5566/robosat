@@ -83,9 +83,10 @@ def main(args):
 
     precision = tp / (tp + fp)
     recall = tp / (tp + fn)
+    accuracy = tp / len(labels)
     f1_score = 2 * (precision * recall) / (precision + recall)
 
-    print(f'precision: {precision}, recall: {recall}, f1_score: {f1_score}')
+    print(f'precision: {precision}, recall: {recall}, f1_score: {f1_score}, accuracy: {accuracy}')
     print(f'true pos: {tp}, false pos: {fp}, false neg: {fn}')
 
     def save_geojson(fname, features):
