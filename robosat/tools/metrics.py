@@ -49,7 +49,8 @@ def main(args):
 
     for i, predict in enumerate(tqdm(predicts, desc="Scanning predictions", unit="shapes", ascii=True)):
 
-        feature = geojson.Feature(geometry=shapely.geometry.mapping(predict))
+        area = int(round(project_ea(predict).area))
+        feature = geojson.Feature(geometry=shapely.geometry.mapping(predict), properties={"area": area})
         nearest = [j for j in lidx.intersection(predict.bounds, objects=False)]
 
         matched = False
@@ -66,7 +67,8 @@ def main(args):
 
     for i, label in enumerate(tqdm(labels, desc="Scanning labels", unit="shapes", ascii=True)):
 
-        feature = geojson.Feature(geometry=shapely.geometry.mapping(label))
+        area = int(round(project_ea(label).area))
+        feature = geojson.Feature(geometry=shapely.geometry.mapping(label), properties={"area": area})
         nearest = [j for j in pidx.intersection(label.bounds, objects=False)]
 
         matched = False
