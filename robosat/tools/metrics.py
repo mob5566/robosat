@@ -77,13 +77,14 @@ def main(args):
 
         if not matched:
             false_neg.append(feature)
-            fp += 1
+            fn += 1
 
     precision = tp / (tp + fp)
     recall = tp / (tp + fn)
     f1_score = 2 * (precision * recall) / (precision + recall)
 
     print(f'precision: {precision}, recall: {recall}, f1_score: {f1_score}')
+    print(f'true pos: {tp}, false pos: {fp}, false neg: {fn}')
 
     def save_geojson(fname, features):
         collection = geojson.FeatureCollection(features)
