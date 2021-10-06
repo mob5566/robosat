@@ -19,6 +19,7 @@ from robosat.config import load_config
 from robosat.colors import continuous_palette_for_color
 from robosat.transforms import ConvertImageMode, ImageToTensor
 
+from torchvision.models.segmentation import fcn_resnet50, deeplabv3_resnet50, lraspp_mobilenet_v3_large
 
 def add_parser(subparser):
     parser = subparser.add_parser(
@@ -59,7 +60,14 @@ def main(args):
     # https://github.com/pytorch/pytorch/issues/7178
     chkpt = torch.load(args.checkpoint, map_location=map_location)
 
-    net = UNet(num_classes).to(device)
+    if not model["common"]["model"] or model["common"]["model"] == "unet":
+        net = UNet(num_classes).to(device)
+    elif model["common"]["model"] == "fcn":
+        net = fcn_resnet50(pretrained=True, num_classes=num_classes).to(device)
+    elif model["common"]["model"] == "deeplabv3":
+        net = deeplabv3_resnet50(num_classes=num_classes)
+    elif model["common"]["model"] == "lraspp":
+        net = lraspp_mobilenet_v3_large(num_classes=num_classes)
     net = nn.DataParallel(net)
 
     if cuda:

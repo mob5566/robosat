@@ -14,6 +14,7 @@ import torch.nn as nn
 
 from torchvision.models import resnet50
 
+from collections import OrderedDict
 
 class ConvRelu(nn.Module):
     """3x3 convolution followed by ReLU activation building block.
@@ -138,4 +139,7 @@ class UNet(nn.Module):
         dec4 = self.dec4(dec3)
         dec5 = self.dec5(dec4)
 
-        return self.final(dec5)
+        result = OrderedDict()
+        result["out"] = self.final(dec5)
+
+        return result

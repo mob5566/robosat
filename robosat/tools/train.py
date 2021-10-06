@@ -12,6 +12,7 @@ from torch.nn import DataParallel
 from torch.optim import Adam
 from torch.utils.data import DataLoader
 from torchvision.transforms import Resize, CenterCrop, Normalize
+from torchvision.models.segmentation import fcn_resnet50, deeplabv3_resnet50, lraspp_mobilenet_v3_large
 
 from tqdm import tqdm
 
@@ -65,7 +66,14 @@ def main(args):
     os.makedirs(model["common"]["checkpoint"], exist_ok=True)
 
     num_classes = len(dataset["common"]["classes"])
-    net = UNet(num_classes)
+    if not model["common"]["model"] or model["common"]["model"] == "unet":
+        net = UNet(num_classes)
+    elif model["common"]["model"] == "fcn":
+        net = fcn_resnet50(num_classes=num_classes)
+    elif model["common"]["model"] == "deeplabv3":
+        net = deeplabv3_resnet50(num_classes=num_classes)
+    elif model["common"]["model"] == "lraspp":
+        net = lraspp_mobilenet_v3_large(num_classes=num_classes)
     net = DataParallel(net)
     net = net.to(device)
 
@@ -178,7 +186,7 @@ def train(loader, num_classes, device, net, optimizer, criterion):
         num_samples += int(images.size(0))
 
         optimizer.zero_grad()
-        outputs = net(images)
+        outputs = net(images)["out"]
 
         assert outputs.size()[2:] == masks.size()[1:], "resolutions for predictions and masks are in sync"
         assert outputs.size()[1] == num_classes, "classes for predictions and dataset are in sync"
