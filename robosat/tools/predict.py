@@ -60,7 +60,7 @@ def main(args):
     # https://github.com/pytorch/pytorch/issues/7178
     chkpt = torch.load(args.checkpoint, map_location=map_location)
 
-    if not model["common"]["model"] or model["common"]["model"] == "unet":
+    if "model" not in model["common"] or model["common"]["model"] == "unet":
         net = UNet(num_classes).to(device)
     elif model["common"]["model"] == "fcn":
         net = fcn_resnet50(num_classes=num_classes).to(device)

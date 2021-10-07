@@ -66,7 +66,7 @@ def main(args):
     os.makedirs(model["common"]["checkpoint"], exist_ok=True)
 
     num_classes = len(dataset["common"]["classes"])
-    if not model["common"]["model"] or model["common"]["model"] == "unet":
+    if "model" not in model["common"] or model["common"]["model"] == "unet":
         net = UNet(num_classes)
     elif model["common"]["model"] == "fcn":
         net = fcn_resnet50(num_classes=num_classes)
@@ -270,14 +270,14 @@ def get_dataset_loaders(model, dataset, workers):
         ]
     )
 
-    if (not dataset["common"]["other_data"] or
+    if ("other_data" not in dataset["common"] or
         len(dataset["common"]["other_data"]) == 0):
         training_set.append(os.path.join(path, "training", "images"))
         validation_set.append(os.path.join(path, "validation", "images"))
-
-    for other_data in dataset["common"]["other_data"]:
-        training_set.append(os.path.join(path, "training", other_data))
-        validation_set.append(os.path.join(path, "validation", other_data))
+    else:
+        for other_data in dataset["common"]["other_data"]:
+            training_set.append(os.path.join(path, "training", other_data))
+            validation_set.append(os.path.join(path, "validation", other_data))
 
     train_dataset = SlippyMapTilesConcatenation(
         training_set, os.path.join(path, "training", "labels"), transform
