@@ -63,7 +63,7 @@ def main(args):
     if not model["common"]["model"] or model["common"]["model"] == "unet":
         net = UNet(num_classes).to(device)
     elif model["common"]["model"] == "fcn":
-        net = fcn_resnet50(pretrained=True, num_classes=num_classes).to(device)
+        net = fcn_resnet50(num_classes=num_classes).to(device)
     elif model["common"]["model"] == "deeplabv3":
         net = deeplabv3_resnet50(num_classes=num_classes)
     elif model["common"]["model"] == "lraspp":
