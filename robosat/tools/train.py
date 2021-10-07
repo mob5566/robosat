@@ -227,7 +227,7 @@ def validate(loader, num_classes, device, net, criterion):
 
         num_samples += int(images.size(0))
 
-        outputs = net(images)
+        outputs = net(images)["out"]
 
         assert outputs.size()[2:] == masks.size()[1:], "resolutions for predictions and masks are in sync"
         assert outputs.size()[1] == num_classes, "classes for predictions and dataset are in sync"

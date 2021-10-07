@@ -89,7 +89,7 @@ def main(args):
     with torch.no_grad():
         for images, tiles in tqdm(loader, desc="Eval", unit="batch", ascii=True):
             images = images.to(device)
-            outputs = net(images)
+            outputs = net(images)["out"]
 
             # manually compute segmentation mask class probabilities per pixel
             probs = nn.functional.softmax(outputs, dim=1).data.cpu().numpy()
