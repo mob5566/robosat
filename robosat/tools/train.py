@@ -8,10 +8,12 @@ from contextlib import contextmanager
 from PIL import Image
 
 import torch
+import torchvision
 import torch.backends.cudnn
 from torch.nn import DataParallel
 from torch.optim import Adam
 from torch.utils.data import DataLoader
+from torch.utils.tensorboard import SummaryWriter
 from torchvision.transforms import Resize, CenterCrop, Normalize
 from torchvision.models.segmentation import fcn_resnet50, deeplabv3_resnet50, lraspp_mobilenet_v3_large
 
@@ -87,6 +89,8 @@ def main(args):
         sys.exit("Error: CUDA requested but not available")
 
     os.makedirs(output_dir, exist_ok=True)
+    writer_train = SummaryWriter(log_dir=os.path.join(output_dir, "train"))
+    writer_val = SummaryWriter(log_dir=os.path.join(output_dir, "valid"))
 
     num_classes = len(dataset["common"]["classes"])
     if "model" not in model["common"] or model["common"]["model"] == "unet":
@@ -167,6 +171,10 @@ def main(args):
                 train_hist["mcc"],
             )
         )
+        writer_train.add_scalar("Loss", train_hist["loss"], epoch)
+        writer_train.add_scalar("mIoU", train_hist["miou"], epoch)
+        writer_train.add_scalar("FG_IoU", train_hist["fg_iou"], epoch)
+        writer_train.add_scalar("MCC", train_hist["mcc"], epoch)
 
         for k, v in train_hist.items():
             history["train " + k].append(v)
@@ -177,6 +185,10 @@ def main(args):
                 val_hist["loss"], val_hist["miou"], dataset["common"]["classes"][1], val_hist["fg_iou"], val_hist["mcc"]
             )
         )
+        writer_val.add_scalar("Loss", val_hist["loss"], epoch)
+        writer_val.add_scalar("mIoU", val_hist["miou"], epoch)
+        writer_val.add_scalar("FG_IoU", val_hist["fg_iou"], epoch)
+        writer_val.add_scalar("MCC", val_hist["mcc"], epoch)
 
         for k, v in val_hist.items():
             history["val " + k].append(v)
