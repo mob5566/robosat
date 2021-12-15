@@ -1,7 +1,7 @@
 import matplotlib
+import numpy as np
 
 import geojson
-
 from tqdm import tqdm
 import shapely.geometry
 
@@ -9,6 +9,7 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt  # noqa: E402
 
 from robosat.spatial.core import make_index, union, project_ea, project_wgs_el, project_el_wgs
+from robosat.datasets import SlippyMapTiles
 
 def plot(out, history):
     plt.figure()
@@ -92,3 +93,30 @@ def get_instance_metrics(predict_geojson, ground_truth_geojson):
     return ((tp, fp, fn, tn),
             (precision, recall, accuracy, f1_score),
             (true_pos, false_pos, false_neg))
+
+def get_pixel_metrics(predicted_dir, ground_truth_dir):
+    pt_dataset = SlippyMapTiles(predicted_dir)
+    gt_dataset = SlippyMapTiles(ground_truth_dir)
+
+    tp = 0
+    fp = 0
+    fn = 0
+    tn = 0
+
+    for pt, gt in tqdm(zip(pt_dataset, gt_dataset)):
+        pt = np.array(pt[0])
+        gt = np.array(gt[0])
+
+        tp += np.sum(np.logical_and(pt == 1, gt == 1))
+        fp += np.sum(np.logical_and(pt == 1, gt == 0))
+        fn += np.sum(np.logical_and(pt == 0, gt == 1))
+        tn += np.sum(np.logical_and(pt == 0, gt == 0))
+
+    precision = tp / (tp + fp)
+    recall = tp / (tp + fn)
+    accuracy = (tp + tn) / (tp + fp + fn + tn)
+    miou = tp / (tp + fp + fn)
+    f1_score = 2 * (precision * recall) / (precision + recall)
+
+    return ((tp, fp, fn, tn),
+            (precision, recall, accuracy, miou, f1_score))
