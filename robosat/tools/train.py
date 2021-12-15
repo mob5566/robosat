@@ -2,6 +2,7 @@ import os
 import sys
 import argparse
 import collections
+import time
 from contextlib import contextmanager
 
 from PIL import Image
@@ -50,6 +51,9 @@ def add_parser(subparser):
     parser.add_argument("--checkpoint", type=str, required=False, help="path to a model checkpoint (to retrain)")
     parser.add_argument("--resume", type=bool, default=False, help="resume training or fine-tuning (if checkpoint)")
     parser.add_argument("--workers", type=int, default=0, help="number of workers pre-processing images")
+    parser.add_argument("--epochs", type=int, help="number of epochs for training")
+    parser.add_argument("--lr", type=float, help="learning rate for training")
+    parser.add_argument("--loss", type=str, help="loss function for training")
 
     parser.set_defaults(func=main)
 
@@ -58,12 +62,31 @@ def main(args):
     model = load_config(args.model)
     dataset = load_config(args.dataset)
 
+    if args.epochs:
+        model["opt"]["epochs"] = args.epochs
+    if args.lr:
+        model["opt"]["lr"] = args.lr
+    if args.loss:
+        model["opt"]["loss"] = args.loss
+
+    output_dir = os.path.join(
+        model["common"]["checkpoint"],
+        "{model}_{epochs:05d}_{lr}_{loss}_{dataset}_{date}".format(**{
+            "model": model["common"]["model"],
+            "epochs": model["opt"]["epochs"],
+            "lr": model["opt"]["lr"],
+            "loss": model["opt"]["loss"],
+            "dataset": dataset["common"]["name"],
+            "date": time.strftime("%Y-%m-%d-%H%M%S")
+        })
+    )
+
     device = torch.device("cuda" if model["common"]["cuda"] else "cpu")
 
     if model["common"]["cuda"] and not torch.cuda.is_available():
         sys.exit("Error: CUDA requested but not available")
 
-    os.makedirs(model["common"]["checkpoint"], exist_ok=True)
+    os.makedirs(output_dir, exist_ok=True)
 
     num_classes = len(dataset["common"]["classes"])
     if "model" not in model["common"] or model["common"]["model"] == "unet":
@@ -120,7 +143,7 @@ def main(args):
         sys.exit("Error: Epoch {} set in {} already reached by the checkpoint provided".format(num_epochs, args.model))
 
     history = collections.defaultdict(list)
-    log = Log(os.path.join(model["common"]["checkpoint"], "log"))
+    log = Log(os.path.join(output_dir, "log"))
 
     log.log("--- Hyper Parameters on Dataset: {} ---".format(dataset["common"]["dataset"]))
     log.log("Batch Size:\t {}".format(model["common"]["batch_size"]))
@@ -160,13 +183,13 @@ def main(args):
 
         if (epoch + 1) % 25 == 0:
             visual = "history-{:05d}-of-{:05d}.png".format(epoch + 1, num_epochs)
-            plot(os.path.join(model["common"]["checkpoint"], visual), history)
+            plot(os.path.join(output_dir, visual), history)
 
             checkpoint = "checkpoint-{:05d}-of-{:05d}.pth".format(epoch + 1, num_epochs)
 
             states = {"epoch": epoch + 1, "state_dict": net.state_dict(), "optimizer": optimizer.state_dict()}
 
-            torch.save(states, os.path.join(model["common"]["checkpoint"], checkpoint))
+            torch.save(states, os.path.join(output_dir, checkpoint))
 
 
 def train(loader, num_classes, device, net, optimizer, criterion):
