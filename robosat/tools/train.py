@@ -291,7 +291,7 @@ def get_dataset_loaders(model, dataset, workers):
 
     mean, std = [0.485, 0.456, 0.406], [0.229, 0.224, 0.225]
 
-    transform = JointCompose(
+    train_transform = JointCompose(
         [
             JointTransform(ConvertImageMode("RGB"), ConvertImageMode("P")),
             JointTransform(Resize(target_size, Image.BILINEAR), Resize(target_size, Image.NEAREST)),
@@ -300,6 +300,15 @@ def get_dataset_loaders(model, dataset, workers):
             JointRandomRotation(0.5, 90),
             JointRandomRotation(0.5, 90),
             JointRandomRotation(0.5, 90),
+            JointTransform(ImageToTensor(), MaskToTensor()),
+            JointTransform(Normalize(mean=mean, std=std), None),
+        ]
+    )
+
+    valid_transform = JointCompose(
+        [
+            JointTransform(ConvertImageMode("RGB"), ConvertImageMode("P")),
+            JointTransform(Resize(target_size, Image.BILINEAR), Resize(target_size, Image.NEAREST)),
             JointTransform(ImageToTensor(), MaskToTensor()),
             JointTransform(Normalize(mean=mean, std=std), None),
         ]
@@ -315,11 +324,11 @@ def get_dataset_loaders(model, dataset, workers):
             validation_set.append(os.path.join(path, "validation", other_data))
 
     train_dataset = SlippyMapTilesConcatenation(
-        training_set, os.path.join(path, "training", "labels"), transform
+        training_set, os.path.join(path, "training", "labels"), train_transform
     )
 
     val_dataset = SlippyMapTilesConcatenation(
-        validation_set, os.path.join(path, "validation", "labels"), transform
+        validation_set, os.path.join(path, "validation", "labels"), valid_transform
     )
 
     assert len(train_dataset) > 0, "at least one tile in training dataset"
