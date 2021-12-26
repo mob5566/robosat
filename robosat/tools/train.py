@@ -56,6 +56,7 @@ def add_parser(subparser):
     parser.add_argument("--epochs", type=int, help="number of epochs for training")
     parser.add_argument("--lr", type=float, help="learning rate for training")
     parser.add_argument("--loss", type=str, help="loss function for training")
+    parser.add_argument("--testdir", type=str, help="path to testing dataset")
 
     parser.set_defaults(func=main)
 
@@ -91,6 +92,8 @@ def main(args):
     os.makedirs(output_dir, exist_ok=True)
     writer_train = SummaryWriter(log_dir=os.path.join(output_dir, "train"))
     writer_val = SummaryWriter(log_dir=os.path.join(output_dir, "valid"))
+    if args.testdir:
+        writer_test = SummaryWriter(log_dir=os.path.join(output_dir, "test"))
 
     num_classes = len(dataset["common"]["classes"])
     if "model" not in model["common"] or model["common"]["model"] == "unet":
@@ -141,6 +144,32 @@ def main(args):
         sys.exit("Error: Unknown [opt][loss] value !")
 
     train_loader, val_loader = get_dataset_loaders(model, dataset, args.workers)
+
+    test_loader = None
+    if args.testdir:
+        mean, std = [0.485, 0.456, 0.406], [0.229, 0.224, 0.225]
+        target_size = (model["common"]["image_size"],) * 2
+        batch_size = model["common"]["batch_size"]
+
+        test_transform = JointCompose(
+            [
+                JointTransform(ConvertImageMode("RGB"), ConvertImageMode("P")),
+                JointTransform(Resize(target_size, Image.BILINEAR), Resize(target_size, Image.NEAREST)),
+                JointTransform(ImageToTensor(), MaskToTensor()),
+                JointTransform(Normalize(mean=mean, std=std), None),
+            ]
+        )
+
+        test_dataset = SlippyMapTilesConcatenation(
+            [os.path.join(args.testdir, "images")],
+            os.path.join(args.testdir, "labels"),
+            test_transform
+        )
+
+        test_loader = DataLoader(
+            test_dataset, batch_size=batch_size, shuffle=False, drop_last=True,
+            num_workers=args.workers
+        )
 
     num_epochs = model["opt"]["epochs"]
     if resume >= num_epochs:
@@ -202,6 +231,20 @@ def main(args):
             states = {"epoch": epoch + 1, "state_dict": net.state_dict(), "optimizer": optimizer.state_dict()}
 
             torch.save(states, os.path.join(output_dir, checkpoint))
+
+        if test_loader:
+            test_hist = validate(test_loader, num_classes, device, net, criterion)
+            log.log(
+                "Validate loss: {:.4f}, mIoU: {:.3f}, {} IoU: {:.3f}, MCC: {:.3f}".format(
+                    test_hist["loss"], test_hist["miou"],
+                    dataset["common"]["classes"][1], test_hist["fg_iou"],
+                    test_hist["mcc"]
+                )
+            )
+            writer_test.add_scalar("Loss", test_hist["loss"], epoch)
+            writer_test.add_scalar("mIoU", test_hist["miou"], epoch)
+            writer_test.add_scalar("FG_IoU", test_hist["fg_iou"], epoch)
+            writer_test.add_scalar("MCC", test_hist["mcc"], epoch)
 
 
 def train(loader, num_classes, device, net, optimizer, criterion):
