@@ -183,6 +183,7 @@ def main(args):
     log.log("Image Size:\t {}".format(model["common"]["image_size"]))
     log.log("Learning Rate:\t {}".format(model["opt"]["lr"]))
     log.log("Loss function:\t {}".format(model["opt"]["loss"]))
+    log.log("Test Dir:\t {}".format(args.testdir))
     if "weight" in locals():
         log.log("Weights :\t {}".format(dataset["weights"]["values"]))
     log.log("---")
@@ -235,7 +236,7 @@ def main(args):
         if test_loader:
             test_hist = validate(test_loader, num_classes, device, net, criterion)
             log.log(
-                "Validate loss: {:.4f}, mIoU: {:.3f}, {} IoU: {:.3f}, MCC: {:.3f}".format(
+                "Test loss: {:.4f}, mIoU: {:.3f}, {} IoU: {:.3f}, MCC: {:.3f}".format(
                     test_hist["loss"], test_hist["miou"],
                     dataset["common"]["classes"][1], test_hist["fg_iou"],
                     test_hist["mcc"]
