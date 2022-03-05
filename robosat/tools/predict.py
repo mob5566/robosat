@@ -15,6 +15,7 @@ from PIL import Image
 
 from robosat.datasets import BufferedSlippyMapDirectory
 from robosat.unet import UNet
+from robosat.deeplabv3 import DeepLabV3P
 from robosat.config import load_config
 from robosat.colors import continuous_palette_for_color
 from robosat.transforms import ConvertImageMode, ImageToTensor
@@ -68,6 +69,8 @@ def main(args):
         net = deeplabv3_resnet50(num_classes=num_classes)
     elif model["common"]["model"] == "lraspp":
         net = lraspp_mobilenet_v3_large(num_classes=num_classes)
+    elif model["common"]["model"] == "deeplabv3p":
+        net = DeepLabV3P(num_classes=num_classes)
     net = nn.DataParallel(net)
 
     if cuda:
