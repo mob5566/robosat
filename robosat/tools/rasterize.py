@@ -25,7 +25,7 @@ def add_parser(subparser):
         "rasterize", help="rasterize features to label masks", formatter_class=argparse.ArgumentDefaultsHelpFormatter
     )
 
-    parser.add_argument("features", type=str, help="path to GeoJSON features file")
+    parser.add_argument("features", type=str, nargs='+', help="path to GeoJSON features file")
     parser.add_argument("tiles", type=str, help="path to .csv tiles file")
     parser.add_argument("out", type=str, help="directory to write converted images")
     parser.add_argument("--dataset", type=str, required=True, help="path to dataset configuration file")
@@ -90,38 +90,44 @@ def main(args):
     colors = dataset["common"]["colors"]
     assert len(classes) == len(colors), "classes and colors coincide"
 
-    assert len(colors) == 2, "only binary models supported right now"
-    bg = colors[0]
-    fg = colors[1]
-
     os.makedirs(args.out, exist_ok=True)
 
     # We can only rasterize all tiles at a single zoom.
     assert all(tile.z == args.zoom for tile in tiles_from_csv(args.tiles))
 
-    with open(args.features) as f:
-        fc = json.load(f)
+    feature_maps = []
 
-    # Find all tiles the features cover and make a map object for quick lookup.
-    feature_map = collections.defaultdict(list)
-    for i, feature in enumerate(tqdm(fc["features"], ascii=True, unit="feature")):
+    for features in args.features:
+        with open(features) as f:
+            fc = json.load(f)
 
-        if feature["geometry"]["type"] != "Polygon":
-            continue
+        # Find all tiles the features cover and make a map object for quick lookup.
+        feature_map = collections.defaultdict(list)
+        for i, feature in enumerate(tqdm(fc["features"], ascii=True, unit="feature")):
 
-        try:
-            for tile in burntiles.burn([feature], zoom=args.zoom):
-                feature_map[mercantile.Tile(*tile)].append(feature)
-        except ValueError as e:
-            print("Warning: invalid feature {}, skipping".format(i), file=sys.stderr)
-            continue
+            if feature is None or feature["geometry"] is None or feature["geometry"]["type"] != "Polygon":
+                continue
+
+            try:
+                for tile in burntiles.burn([feature], zoom=args.zoom):
+                    feature_map[mercantile.Tile(*tile)].append(feature)
+            except ValueError as e:
+                print("Warning: invalid feature {}, skipping".format(i), file=sys.stderr)
+                continue
+
+        feature_maps.append(feature_map)
 
     # Burn features to tiles and write to a slippy map directory.
     for tile in tqdm(list(tiles_from_csv(args.tiles)), ascii=True, unit="tile"):
-        if tile in feature_map:
-            out = burn(tile, feature_map[tile], args.size)
-        else:
-            out = np.zeros(shape=(args.size, args.size), dtype=np.uint8)
+        out = np.zeros(shape=(args.size, args.size), dtype=np.uint8)
+
+        for idx, feature_map in enumerate(feature_maps, 1):
+            if tile in feature_map:
+                fout = burn(tile, feature_map[tile], args.size)
+            else:
+                fout = np.zeros(shape=(args.size, args.size), dtype=np.uint8)
+
+            out[np.where(fout)] = idx
 
         out_dir = os.path.join(args.out, str(tile.z), str(tile.x))
         os.makedirs(out_dir, exist_ok=True)
@@ -134,7 +140,7 @@ def main(args):
 
         out = Image.fromarray(out, mode="P")
 
-        palette = make_palette(bg, fg)
+        palette = make_palette(*colors)
         out.putpalette(palette)
 
         out.save(out_path, optimize=True)
