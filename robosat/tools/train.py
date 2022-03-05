@@ -189,6 +189,8 @@ def main(args):
     log.log("Test Dir:\t {}".format(args.testdir))
     if "weight" in locals():
         log.log("Weights :\t {}".format(dataset["weights"]["values"]))
+    pytorch_total_params = sum(p.numel() for p in net.parameters() if p.requires_grad)
+    log.log('Number of parameters: {}'.format(pytorch_total_params))
     log.log("---")
 
     for epoch in range(resume, num_epochs):
