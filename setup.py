@@ -32,7 +32,7 @@ setuptools.setup(
         'rtree~=0.8',
         'scipy~=1.3',
         'shapely~=1.6',
-        'supermercado~=0.0.5',
+        'supermercado@git+https://github.com/mob5566/supermercado.git#egg=supermercado',
         'toml~=0.10',
         'torch~=1.1',
         'torchvision~=0.3',
