@@ -134,10 +134,6 @@ def main(args):
 
         out_path = os.path.join(out_dir, "{}.png".format(tile.y))
 
-        if os.path.exists(out_path):
-            prev = np.array(Image.open(out_path))
-            out = np.maximum(out, prev)
-
         out = Image.fromarray(out, mode="P")
 
         palette = make_palette(*colors)
