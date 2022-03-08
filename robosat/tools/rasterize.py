@@ -105,7 +105,7 @@ def main(args):
         feature_map = collections.defaultdict(list)
         for i, feature in enumerate(tqdm(fc["features"], ascii=True, unit="feature")):
 
-            if feature is None or feature["geometry"] is None or feature["geometry"]["type"] != "Polygon":
+            if feature is None or feature["geometry"] is None:
                 continue
 
             try:
