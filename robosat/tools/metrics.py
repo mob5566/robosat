@@ -13,7 +13,7 @@ def add_parser(subparser):
 
     parser.add_argument("predicts", type=str, help="GeoJSON file to read prediction features from")
     parser.add_argument("labels", type=str, help="GeoJSON file to read label features from")
-    parser.add_argument("--threshold", type=int, required=False, help="minimum distance to adjacent features, in m")
+    parser.add_argument("--threshold", type=float, default=0.5, help="threshold for IoU hit")
     parser.add_argument("out", type=str, help="path to GeoJSON to save merged features to")
 
     parser.set_defaults(func=main)
@@ -23,7 +23,8 @@ def main(args):
     ((tp, fp, fn, tn),
      (precision, recall, accuracy, f1_score),
      (true_pos, false_pos, false_neg)) = get_instance_metrics(args.predicts,
-                                                              args.labels)
+                                                              args.labels,
+                                                              args.threshold)
 
     print(f'precision: {precision}, recall: {recall}, f1_score: {f1_score}, accuracy: {accuracy}')
     print(f'true pos: {tp}, false pos: {fp}, false neg: {fn}')

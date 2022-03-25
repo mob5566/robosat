@@ -27,7 +27,7 @@ def plot(out, history):
     plt.savefig(out, format="png")
     plt.close()
 
-def get_instance_metrics(predict_geojson, ground_truth_geojson):
+def get_instance_metrics(predict_geojson, ground_truth_geojson, threshold=0.5):
     with open(predict_geojson) as fp:
         collection = geojson.load(fp)
 
@@ -51,6 +51,9 @@ def get_instance_metrics(predict_geojson, ground_truth_geojson):
     false_pos = []
     false_neg = []
 
+    def hit(poly1, poly2):
+        return poly1.intersects(poly2)
+
     for i, predict in enumerate(tqdm(predicts, desc="Scanning predictions", unit="shapes", ascii=True)):
 
         area = int(round(project_ea(predict).area))
@@ -59,7 +62,7 @@ def get_instance_metrics(predict_geojson, ground_truth_geojson):
 
         matched = False
         for t in nearest:
-            if predict.intersects(labels[t]):
+            if hit(predict, labels[t]):
                 tp += 1
                 true_pos.append(feature)
                 matched = True
@@ -77,7 +80,7 @@ def get_instance_metrics(predict_geojson, ground_truth_geojson):
 
         matched = False
         for t in nearest:
-            if label.intersects(predicts[t]):
+            if hit(label, predicts[t]):
                 matched = True
                 break
 
