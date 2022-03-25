@@ -32,6 +32,7 @@ from robosat.datasets import SlippyMapTilesConcatenation
 from robosat.metrics import Metrics
 from robosat.losses import CrossEntropyLoss2d, mIoULoss2d, FocalLoss2d, LovaszLoss2d
 from robosat.unet import UNet
+from robosat.vanilla_unet import VanillaUNet
 from robosat.deeplabv3 import DeepLabV3P
 from robosat.utils import plot
 from robosat.config import load_config
@@ -99,6 +100,8 @@ def main(args):
     num_classes = len(dataset["common"]["classes"])
     if "model" not in model["common"] or model["common"]["model"] == "unet":
         net = UNet(num_classes)
+    elif model["common"]["model"] == "vanilla_unet":
+        net = VanillaUNet(n_channels=3, n_classes=num_classes)
     elif model["common"]["model"] == "fcn":
         net = fcn_resnet50(num_classes=num_classes)
     elif model["common"]["model"] == "deeplabv3":

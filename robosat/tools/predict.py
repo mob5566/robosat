@@ -15,6 +15,7 @@ from PIL import Image
 
 from robosat.datasets import BufferedSlippyMapDirectory
 from robosat.unet import UNet
+from robosat.vanilla_unet import VanillaUNet
 from robosat.deeplabv3 import DeepLabV3P
 from robosat.config import load_config
 from robosat.colors import continuous_palette_for_color
@@ -63,6 +64,8 @@ def main(args):
 
     if "model" not in model["common"] or model["common"]["model"] == "unet":
         net = UNet(num_classes).to(device)
+    elif model["common"]["model"] == "vanilla_unet":
+        net = VanillaUNet(n_channels=3, n_classes=num_classes).to(device)
     elif model["common"]["model"] == "fcn":
         net = fcn_resnet50(num_classes=num_classes).to(device)
     elif model["common"]["model"] == "deeplabv3":
