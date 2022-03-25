@@ -31,13 +31,13 @@ def get_instance_metrics(predict_geojson, ground_truth_geojson, threshold=0.5):
     with open(predict_geojson) as fp:
         collection = geojson.load(fp)
 
-    predicts = [shapely.geometry.shape(feature["geometry"]) for feature in collection["features"]]
+    predicts = [shapely.geometry.shape(feature["geometry"]).buffer(0) for feature in collection["features"]]
     del collection
 
     with open(ground_truth_geojson) as fp:
         collection = geojson.load(fp)
 
-    labels = [shapely.geometry.shape(feature["geometry"]) for feature in collection["features"]]
+    labels = [shapely.geometry.shape(feature["geometry"]).buffer(0) for feature in collection["features"]]
     del collection
 
     pidx = make_index(predicts)
@@ -52,7 +52,8 @@ def get_instance_metrics(predict_geojson, ground_truth_geojson, threshold=0.5):
     false_neg = []
 
     def hit(poly1, poly2):
-        return poly1.intersects(poly2)
+        return (poly1.intersection(poly2).area /
+                (poly1.union(poly2).area + 1e-8)) >= threshold
 
     for i, predict in enumerate(tqdm(predicts, desc="Scanning predictions", unit="shapes", ascii=True)):
 
