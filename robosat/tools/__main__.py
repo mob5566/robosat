@@ -13,6 +13,7 @@ from robosat.tools import (
     predict,
     rasterize,
     serve,
+    serve_dir,
     subset,
     train,
     weights,
@@ -40,6 +41,7 @@ def add_parsers():
     dedupe.add_parser(subparser)
 
     serve.add_parser(subparser)
+    serve_dir.add_parser(subparser)
 
     weights.add_parser(subparser)
 
