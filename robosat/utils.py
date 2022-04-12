@@ -31,13 +31,17 @@ def get_instance_metrics(predict_geojson, ground_truth_geojson, threshold=0.5):
     with open(predict_geojson) as fp:
         collection = geojson.load(fp)
 
-    predicts = [shapely.geometry.shape(feature["geometry"]).buffer(0) for feature in collection["features"]]
+    predicts = list(filter(lambda shape: shape.area > 0,
+                           [shapely.geometry.shape(feature["geometry"]).buffer(0)
+                            for feature in collection["features"]]))
     del collection
 
     with open(ground_truth_geojson) as fp:
         collection = geojson.load(fp)
 
-    labels = [shapely.geometry.shape(feature["geometry"]).buffer(0) for feature in collection["features"]]
+    labels = list(filter(lambda shape: shape.area > 0,
+                         [shapely.geometry.shape(feature["geometry"]).buffer(0)
+                          for feature in collection["features"]]))
     del collection
 
     pidx = make_index(predicts)
@@ -89,10 +93,10 @@ def get_instance_metrics(predict_geojson, ground_truth_geojson, threshold=0.5):
             false_neg.append(feature)
             fn += 1
 
-    precision = tp / (tp + fp)
-    recall = tp / (tp + fn)
+    precision = tp / (tp + fp + 1e-8)
+    recall = tp / (tp + fn + 1e-8)
     accuracy = tp / len(labels)
-    f1_score = 2 * (precision * recall) / (precision + recall)
+    f1_score = 2 * (precision * recall) / (precision + recall + 1e-8)
 
     return ((tp, fp, fn, tn),
             (precision, recall, accuracy, f1_score),
@@ -116,11 +120,11 @@ def get_pixel_metrics(predicted_dir, ground_truth_dir):
         fn += np.sum(np.logical_and(pt == 0, gt == 1))
         tn += np.sum(np.logical_and(pt == 0, gt == 0))
 
-    precision = tp / (tp + fp)
-    recall = tp / (tp + fn)
-    accuracy = (tp + tn) / (tp + fp + fn + tn)
-    miou = tp / (tp + fp + fn)
-    f1_score = 2 * (precision * recall) / (precision + recall)
+    precision = tp / (tp + fp + 1e-8)
+    recall = tp / (tp + fn + 1e-8)
+    accuracy = (tp + tn) / (tp + fp + fn + tn + 1e-8)
+    miou = tp / (tp + fp + fn + 1e-8)
+    f1_score = 2 * (precision * recall) / (precision + recall + 1e-8)
 
     return ((tp, fp, fn, tn),
             (precision, recall, accuracy, miou, f1_score))
