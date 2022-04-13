@@ -11,6 +11,7 @@ from robosat.colors import Mapbox
 
 from robosat.features.parking import ParkingHandler
 from robosat.features.bridge import BridgeHandler
+from robosat.features.landuse import LanduseHandler
 
 
 # Register post-processing handlers here; they need to support a `apply(tile, mask)` function
@@ -18,6 +19,13 @@ from robosat.features.bridge import BridgeHandler
 handlers = {
     "background": None,
     "bridge": BridgeHandler,
+    "Veg": LanduseHandler,
+    "Orchard": LanduseHandler,
+    "Swamp": LanduseHandler,
+    "Sandbar": LanduseHandler,
+    "WaterBody": LanduseHandler,
+    "Builtup": LanduseHandler,
+    "Build": LanduseHandler,
 }
 
 
