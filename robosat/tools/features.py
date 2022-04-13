@@ -15,7 +15,10 @@ from robosat.features.bridge import BridgeHandler
 
 # Register post-processing handlers here; they need to support a `apply(tile, mask)` function
 # for handling one mask and a `save(path)` function for GeoJSON serialization to a file.
-handlers = {"bridge": BridgeHandler}
+handlers = {
+    "background": None,
+    "bridge": BridgeHandler,
+}
 
 
 def add_parser(subparser):
@@ -38,7 +41,7 @@ def main(args):
     dataset = load_config(args.dataset)
 
     labels = dataset["common"]["classes"]
-    assert set(labels).issuperset(set(handlers.keys())), "handlers have a class label"
+    assert set(handlers.keys()).issuperset(set(labels)), "handlers have a class label"
     index = labels.index(args.type)
     color = Mapbox[dataset["common"]["colors"][index]].value
 
