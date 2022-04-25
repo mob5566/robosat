@@ -92,7 +92,7 @@ class BaseHandler:
             assert 0 < len(rings), "at least one outer ring in a polygon"
 
             geometry = geojson.Polygon(rings)
-            shape = shapely.geometry.shape(geometry)
+            shape = shapely.geometry.shape(geometry).buffer(0)
 
             if shape.is_valid:
                 self.features.append(geojson.Feature(geometry=geometry))

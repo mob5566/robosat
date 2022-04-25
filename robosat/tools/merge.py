@@ -26,7 +26,7 @@ def main(args):
     with open(args.features) as fp:
         collection = geojson.load(fp)
 
-    shapes = [shapely.geometry.shape(feature["geometry"]) for feature in collection["features"]]
+    shapes = [shapely.geometry.shape(feature["geometry"]).buffer(0) for feature in collection["features"]]
     del collection
 
     graph = UndirectedGraph()
